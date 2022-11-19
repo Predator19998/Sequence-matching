@@ -1,8 +1,9 @@
-CTTC
+ACTG
+3
+6
+1
+1
+TACG
+1
 2
-2
-4
-CCGA
 0
-0
-9

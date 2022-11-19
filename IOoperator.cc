@@ -127,6 +127,7 @@ class IOoperator{
 int main(int argc, char *argv[]){
     IOoperator myio;
     myio.stringGenerator(argc, argv);
+    myio.stringPrinter();
     
     
     

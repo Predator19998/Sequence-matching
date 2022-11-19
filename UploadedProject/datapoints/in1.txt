@@ -1,4 +1,8 @@
-CCAG
-2
-CATG
+ACTG
 3
+6
+1
+TACG
+1
+2
+9
