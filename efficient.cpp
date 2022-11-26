@@ -185,194 +185,36 @@ int findPenmiss(char a, char b) {
     return miss_arr[i][j];
 }
 
-string* sequenceAlignment(string x, string y,int pen_gap){
-    cost2=0;
-    string s1,s2;
-    string res[2];
+void sequenceAlignment(string x, string y,int pen_gap){
+    int len1 = x.length();
+    int len2 = y.length();
+    int a = 0;
 
-    int i,j;
+    int dp[2][len2+1];
 
-    int m = x.length();
-    int n = y.length();
-
-    int dp[n+m+1][n+m+1];
-
-    for(i=0;i<=(n+m);i++) {
-        dp[i][0] = i*pen_gap;
+    memset(dp,0,sizeof dp);
+    for(int i=0;i<=len1;i++){
         dp[0][i] = i*pen_gap;
     }
 
-    for(i=1;i<=m;i++) {
-        for(j=1;j<=n;j++) {
-            if(x[i-1] == y[j-1]) {
-                dp[i][j] = dp[i-1][j-1];
-            } else {
-                dp[i][j] = findMin(dp[i-1][j-1] + findPenmiss(x[i-1],y[j-1]), dp[i-1][j] + pen_gap, dp[i][j-1] + pen_gap);
-            }
+    //takes only 2 indices for the x array for memory efficiency i.e only 0 and 1
+    for(int i=1;i<=len1;i++){
+        a=1-a;
+        for(int j=0;j<=len2;j++){
+            if(i==0) dp[a][j] = j*pen_gap;
+
+            else if (j==0) dp[a][j] = i*pen_gap;
+
+            else if(x[i-1]==y[j-1]) dp[a][j] = dp[1-a][j-1];
+
+            else dp[a][j] = findMin(dp[1-a][j-1] + findPenmiss(x[i-1],y[j-1]),dp[a][j-1] + pen_gap,dp[1-a][j] + pen_gap);
         }
     }
 
-    int l = n+m;
+    //final resultant cost of the sequence alignment
+    cout<<dp[a][len1]<<endl;
 
-    i=m;j=n;
-
-    int xpos=l;
-    int ypos=l;
-
-    char xalign[l+1], yalign[l+1];
-
-    //Finidng the aligned sequence
-    while(!(i==0||j==0)){
-        if(x[i-1] == y[j-1]) {
-            xalign[xpos--] = x[i-1];
-            yalign[ypos--] = y[j-1];
-            i--;j--;
-        }
-        else if (dp[i-1][j-1] + findPenmiss(x[i-1],y[j-1]) == dp[i][j]) {
-            xalign[xpos--] = x[i-1];
-            yalign[ypos--] = y[j-1];
-            i--;j--;            
-        }
-        else if(dp[i-1][j] + pen_gap == dp[i][j]) {
-            xalign[xpos--] = x[i-1];
-            yalign[ypos--] = '_';
-            i--;            
-        }
-        else if(dp[i][j-1] + pen_gap == dp[i][j]) {
-            xalign[xpos--] = '_';
-            yalign[ypos--] = y[j-1];
-            j--;            
-        }
-    }
-    while (xpos>0) {
-        if(i>0) xalign[xpos--] = x[--i];
-        else xalign[xpos--] = '_';
-    }
-    while (ypos>0) {
-        if(j>0) yalign[ypos--] = y[--j];
-        else yalign[ypos--] = '_';
-    }
-
-    int use=1;
-    i=1;
-    while(yalign[i] == '_' && xalign[i] == '_') {
-        use=i+1;
-        i++;
-    }
-
-    //printf("Minimum penalty = %d\n",dp[m][n]);
-    cost2 = dp[m][n]; //The minumum penalty of the sequence alignment
-    //cout<<"alignment cost = "<<cost<<endl;
-    //printf("Aligned Sequence\n");
-    //Storing the aligned sequence
-    for(i=use;i<=l;i++){
-        //printf("%c",xalign[i]);
-        s1 = s1+xalign[i];
-    }
-    //printf("\n");
-    for(i=use;i<=l;i++){
-        //printf("%c",yalign[i]);
-        s2 = s2+yalign[i];
-    }
-    //cout<<outs1<<endl<<outs2<<endl;
-    res[0] = s1; res[1] = s2;
-    return res;
-}
-
-int* keepScore(string x,string y,int pen_gap) {
-    //cout<<"xlength="<<x.length()<<",ylength="<<y.length()<<endl;
-    int score[x.length()+1][y.length()+1];
-
-    for(int i=0; i<x.length()+1;i++) {
-        for(int j=0; j<y.length()+1;j++) score[i][j] = 0;
-    }
-    for(int j=1; j<y.length()+1;j++) score[0][j] = score[0][j-1] + pen_gap;
-    for(int i=1; i<x.length()+1;i++) {
-        score[1][0] = score[0][0] + pen_gap;
-        for(int j=1 ; j<y.length();j++) {
-            score[1][j]=findMin(score[0][j-1]+findPenmiss(x[i-1],y[j-1]),score[0][j]+pen_gap,score[1][j-1]+pen_gap);
-        }
-        for(int j=0 ; j<y.length();j++){
-            score[0][j] = score[1][j];
-        }
-    }
-    int *lastLine = (int*)malloc(y.length()*sizeof(int));
-    for(int j=0 ; j<y.length();j++) {
-        lastLine[j] = score[1][j];
-    }
-    return lastLine;
-}
-
-string * efficientAlignment(string x, string y, int pen_gap){
-    string a = "" , b = "";
-    string *res = (string*)malloc(2*sizeof(string));
-    //cout<<x.length()<<","<<y.length()<<endl;
-    if(x.length()==0) {
-        for(int i=0;i<y.length();i++) {
-            a=a+'_';
-            b=b+y[i];
-            cost+=pen_gap;
-        }
-    }
-    else if(y.length()==0){
-        for(int i=0;i<x.length();i++) {
-            a=a+x[i];
-            b=b+'_';
-            cost+=pen_gap;
-        }
-    }
-    else if(x.length()<=2||y.length()<=2) {
-        res = sequenceAlignment(x,y,pen_gap);
-        a = res[0];
-        b = res[1];
-        cost+=cost2;
-    }
-    else {
-        int xlen=x.length();
-        int ylen=y.length();
-        int xmid=x.length()/2;
-        //cout<<"mid="<<xmid<<endl;
-        int *scoreL = (int*) malloc (ylen*sizeof(int));
-        scoreL=keepScore(x.substr(0,xmid),y,pen_gap);
-        string reversedString1 = x.substr(xmid,xlen);
-        reverse(reversedString1.begin(),reversedString1.end());
-        string reversedString2 = y;
-        reverse(reversedString2.begin(),reversedString2.end());
-        //cout<<reversedString1<<"\n";
-        //cout<<reversedString2<<"\n";
-        int *scoreR=(int*) malloc (ylen*sizeof(int));
-        scoreR = keepScore(reversedString1,reversedString2,pen_gap);
-
-        // cout<<"ScoreL=";
-        // for(int i=0;i<ylen;i++){
-        //     cout<<scoreL[i]<<" ";
-        // }
-        // cout<<endl;
-        // cout<<"ScoreR=";
-        // for(int j=ylen-1;j>=0;j--){
-        //     cout<<scoreR[j]<<" ";
-        // }
-        // cout<<endl;
-        int scoreSum[ylen];
-        // cout<<"Scoresum=";
-        for(int i=0,j=ylen-1;i<ylen,j>=0;i++,j--) {
-            scoreSum[i] = scoreL[i] + scoreR[j];
-            // cout<<scoreSum[i]<<" ";
-        }
-        //cout<<endl;
-        int min=0;
-        for(int i=1;i<ylen;i++) {
-            if (scoreSum[min]>scoreSum[i]) min=i;
-        }
-        int ymid = min;
-        //cout<<scoreSum[min]<<endl;
-        //if (localcost<scoreSum[min]) localcost = scoreSum[min];
-        a = a + efficientAlignment(x.substr(0,xmid),y.substr(0,ymid),pen_gap)[0] + efficientAlignment(x.substr(xmid,xlen),y.substr(ymid,ylen),pen_gap)[0];
-        b = b + efficientAlignment(x.substr(0,xmid),y.substr(0,ymid),pen_gap)[1] + efficientAlignment(x.substr(xmid,xlen),y.substr(ymid,ylen),pen_gap)[1];
-    }
-    //cout<<a<<endl<<b<<endl;
-    res[0] = a;res[1]=b;
-    return res;
+    //todo reconstrct the sequence either in the above loop or a new loop
 }
 
 int main(int argc, char *argv[]) {
@@ -385,11 +227,11 @@ int main(int argc, char *argv[]) {
     //write your solution here
     //Please call getTotalMemory() only after calling your solution function. It calculates max memory used by the program.
     myio.stringGenerator(argc, argv);
-    myio.stringPrinter();
+    //myio.stringPrinter();
     int pen_gap = 30;
 
-    //efficientAlignment(,myio.s2,pen_gap);
-    res2 = efficientAlignment("ACACACTGACTACTGACTGGTGACTACTGACTGGACTGACTACTGACTGGTGACTACTGACTGG","TTATTATACGCGACGCGATTATACGCGACGCG",pen_gap);
+    sequenceAlignment(myio.s1,myio.s2,pen_gap);
+    //res2 = efficientAlignment("AGGGCT","AGGCA",pen_gap);
     double totalmemory = getTotalMemory();
     gettimeofday(&end, 0);
     long seconds = end.tv_sec - begin.tv_sec;
@@ -398,6 +240,6 @@ int main(int argc, char *argv[]) {
     // printf("\nTotal time = %f\n", totaltime);
     // printf("Total memory = %f\n", totalmemory);
     //myio.fileWriter(cost,outs1,outs2,totaltime,totalmemory);
-    cout<<"cost="<<cost/2<<endl;
+    //cout<<"cost="<<cost/2<<endl;
     cout<<res2[0]<<"\n"<<res2[1];
 }
