@@ -35,7 +35,7 @@ class IOoperator{
                         len = current_string.length();
                     }
                     else{
-                        if(numOfIndices >10 || len >2000 || pow(2,numOfIndices)*len >2000){
+                        if(numOfIndices >20 || len >20000 || pow(2,numOfIndices)*len >20000){
                             perror("Invalid Input String s1");
                         }
                         s1 = current_string;
@@ -55,7 +55,7 @@ class IOoperator{
                       
                 }
             }
-            if(numOfIndices >10 || len >2000 || pow(2,numOfIndices)*len >2000){
+            if(numOfIndices >20 || len >20000 || pow(2,numOfIndices)*len >20000){
                 perror("Invalid Input String s2");
                 
             }
@@ -137,9 +137,7 @@ class IOoperator{
 };
 
 extern int errno;
-
-string outs1,outs2;
-int cost = 0,cost2;
+int cost = 0;
 
 int miss_arr[4][4] = {0,110,48,94,
                     110,0,118,48,
@@ -185,43 +183,228 @@ int findPenmiss(char a, char b) {
     return miss_arr[i][j];
 }
 
-void sequenceAlignment(string x, string y,int pen_gap){
-    int len1 = x.length();
-    int len2 = y.length();
-    int a = 0;
+string * sequenceAlignment(string x, string y,int pen_gap){
+    int n = x.length();
+    int m = y.length();
 
-    int dp[2][len2+1];
+    int dp[n+1][n+1];
 
-    memset(dp,0,sizeof dp);
-    for(int i=0;i<=len1;i++){
-        dp[0][i] = i*pen_gap;
+    cout<<"string in sequence func = "<<x<<","<<y<<endl;
+
+    for(int i=0; i<n+1;i++){
+        for(int j=0; j<m+1; j++) dp[i][j] = 0;
     }
 
-    //takes only 2 indices for the x array for memory efficiency i.e only 0 and 1
-    for(int i=1;i<=len1;i++){
-        a=1-a;
-        for(int j=0;j<=len2;j++){
-            if(i==0) dp[a][j] = j*pen_gap;
+    for(int j=0; j<m+1; j++) dp[0][j] = j*pen_gap;
 
-            else if (j==0) dp[a][j] = i*pen_gap;
+    for(int i=0; i<n+1;i++) dp[i][0] = i*pen_gap;
 
-            else if(x[i-1]==y[j-1]) dp[a][j] = dp[1-a][j-1];
+    for(int i=1; i<n+1;i++){
+        for(int j=1; j<m+1; j++) 
+        {
+            if(x[i-1] == y[j-1]) {
+                dp[i][j] = dp[i-1][j-1];
+            }
+            else dp[i][j] = findMin(dp[i-1][j-1] + findPenmiss(x[i-1],y[j-1]),dp[i][j-1] + pen_gap, dp[i-1][j] + pen_gap);
+            //cout<<dp[i][j] << " ";
+        }
+        //cout<<endl;
+    }
 
-            else dp[a][j] = findMin(dp[1-a][j-1] + findPenmiss(x[i-1],y[j-1]),dp[a][j-1] + pen_gap,dp[1-a][j] + pen_gap);
+    string a="";
+    string b="";
+
+    int i=n; int j=m;
+
+    while(i&&j) {
+        int score = dp[i][j];
+        int scoreDiag = dp[i-1][j-1];
+        int scoreUp = dp[i-1][j];
+        int scoreLeft = dp[i][j-1];
+
+        if(x[i-1] == y[j-1]) {
+            a = x[i-1] + a;
+            b = y[j-1] + b;
+            i--;j--;
+        }
+        else if(score == scoreDiag + findPenmiss(x[i-1],y[j-1])){
+            a = x[i-1] + a;
+            b = y[j-1] + b;
+            i--;j--;
+        }
+
+        else if(score == scoreUp + pen_gap) {
+            a = x[i-1] + a;
+            b = '_' + b;
+            i--;
+        }
+
+        else if(score == scoreLeft + pen_gap){
+            a = '_' + a;
+            b = y[j-1] + b;
+            j--;
         }
     }
 
-    //final resultant cost of the sequence alignment
-    cout<<dp[a][len1]<<endl;
+    while(i) {
+        a = x[i-1] + a;
+        b = '_' + b;
+        i--;
+    }
+    while(j) {
+        a = '_' + a;
+        b = y[j-1] + b;
+        j--;
+    }
 
-    //todo reconstrct the sequence either in the above loop or a new loop
+    string * result = new string[2];
+
+    result[0] = a;
+    result[1] = b;
+
+    //cout<<"cost is = "<<dp[n][m]<<endl;
+
+    cost+=dp[n][m];
+
+    cout<<result[0]<<","<<result[1]<<endl;;
+
+    return result;
+}
+
+int * forwards(string x, string y, int pen_gap){
+    int n=x.length();
+    int m=y.length();
+
+    int dp[2][m+1];
+
+    for(int i=0; i<2; i++) 
+        for(int j=0; j<m+1; j++) {
+            dp[i][j] = 0;
+        }
+    
+    for(int j=0; j<m+1; j++) dp[0][j] = pen_gap*j;
+
+    for(int i=1; i<n+1; i++) {
+        dp[1][0] = dp[0][0] + pen_gap;
+        
+        for(int j=1; j<m+1; j++){
+            dp[1][j] = findMin(dp[0][j-1] + findPenmiss(x[i-1],y[j-1]), dp[0][j] + pen_gap, dp[1][j-1] + pen_gap);
+        }
+
+        for(int j=1; j<m+1; j++) dp[0][j] = dp[1][j];        
+    }
+
+    int *result = new int[m+1];
+    //cout<<"forward=";
+    for(int i=0; i<m+1 ; i++) {
+        result[i] = dp[1][i];
+        //cout<<result[i]<<" ";
+    }
+
+    return result;
+}
+
+int * backwards(string x, string y, int pen_gap) {
+    int n=x.length();
+    int m=y.length();
+
+    int dp[2][m+1];
+
+    for(int i=0; i<2; i++) 
+        for(int j=0; j<m+1; j++) {
+            dp[i][j] = 0;
+        }
+
+    for(int j=0; j<m+1; j++) dp[0][j] = pen_gap*j;
+
+    for(int i=1; i<n+1; i++) {
+        dp[1][0] = dp[0][0] + pen_gap;
+        
+        for(int j=1; j<m+1; j++){
+            dp[1][j] = findMin(dp[0][j-1] + findPenmiss(x[n-i],y[m-j]), dp[0][j] + pen_gap, dp[1][j-1] + pen_gap);
+        }
+
+        for(int j=0; j<m+1; j++) dp[0][j] = dp[1][j];        
+    }
+
+    int *result = new int[m+1];
+    //cout<<"backward=";
+    for(int i=0; i<m+1 ; i++) {
+        result[i] = dp[1][i];
+        //cout<<result[i]<<" ";
+    }
+    return result;
+}
+
+string * efficient(string x, string y, int pen_gap){
+    int n=x.length();
+    int m=y.length();
+
+    string a="";
+    string b="";
+    string * result = new string[2];
+
+    if(n<2 || m<2) {
+        result = sequenceAlignment(x,y,pen_gap);
+        // a = result[0];
+        // b = result[1];
+        //cout<<result[0]<<","<<result[1]<<endl;
+        return result;
+        //cout<<a<<endl<<b<<endl;
+    }
+    else {
+        int partition[m+1];
+
+        //cout<<"find partition"<<endl;
+
+        int * forward = forwards(x.substr(0,n/2),y,pen_gap);
+
+        //cout<<"forward found"<<endl;
+        int * backward = backwards(x.substr(n/2,n),y,pen_gap);
+
+        for(int j=0; j<m+1; j++) {
+            partition[j] = forward[j] + backward[m-j];
+            //cout<<partition[j]<<" ";
+        }
+
+        //cout<<endl;
+
+        int * partition_begin = &partition[0];
+        int * partition_end = &partition[m];
+
+        int min = distance(partition_begin,min_element(partition_begin,partition_end));
+        //cout<<"cut is="<<min<<endl;
+
+        forward = NULL;
+        backward = NULL;
+
+        string *callleft = new string[2];
+        string *callright = new string[2];
+
+        cout<<x.substr(0,n/2)<<","<<y.substr(0,min)<<endl;
+        cout<<x.substr(n/2,n)<<","<<y.substr(min,m)<<endl;
+
+        callleft = efficient(x.substr(0,n/2),y.substr(0,min),pen_gap);
+        callright = efficient(x.substr(n/2,n),y.substr(min,m+1),pen_gap);
+
+        cout<<"first string="<<callleft[0]<<","<<callright[0]<<endl;
+        cout<<"second string="<<callleft[1]<<","<<callright[1]<<endl;
+
+        // a = callleft[0]+callright[0];
+        // b = callleft[1]+callright[1];
+
+        result[0] = callleft[0]+callright[0];
+        result[1] = callleft[1]+callright[1];
+
+        return result;
+    }
 }
 
 int main(int argc, char *argv[]) {
 
     IOoperator myio;
     string s1,s2;
-    string * res2 = (string*)malloc(2*sizeof(string));
+    string * res2 = new string[2];
     struct timeval begin, end;
     gettimeofday(&begin, 0);
     //write your solution here
@@ -229,9 +412,9 @@ int main(int argc, char *argv[]) {
     myio.stringGenerator(argc, argv);
     //myio.stringPrinter();
     int pen_gap = 30;
-
-    sequenceAlignment(myio.s1,myio.s2,pen_gap);
-    //res2 = efficientAlignment("AGGGCT","AGGCA",pen_gap);
+    cout<<"start the alignment"<<endl;
+    res2 = efficient(myio.s1,myio.s2,pen_gap);
+    //res2 = efficient("AAAAAA","TATATATATATA",pen_gap);
     double totalmemory = getTotalMemory();
     gettimeofday(&end, 0);
     long seconds = end.tv_sec - begin.tv_sec;
@@ -240,6 +423,6 @@ int main(int argc, char *argv[]) {
     // printf("\nTotal time = %f\n", totaltime);
     // printf("Total memory = %f\n", totalmemory);
     //myio.fileWriter(cost,outs1,outs2,totaltime,totalmemory);
-    //cout<<"cost="<<cost/2<<endl;
+    cout<<"cost="<<cost<<endl;
     cout<<res2[0]<<"\n"<<res2[1];
 }
