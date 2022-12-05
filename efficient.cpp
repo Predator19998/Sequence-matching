@@ -183,90 +183,98 @@ int findPenmiss(char a, char b) {
     return miss_arr[i][j];
 }
 
-string * sequenceAlignment(string x, string y,int pen_gap){
-    int n = x.length();
-    int m = y.length();
+string* sequenceAlignment(string x, string y,int pen_gap){
+    int i,j;
 
-    int dp[n+1][n+1];
+    int m = x.length();
+    int n = y.length();
 
-    cout<<"string in sequence func = "<<x<<","<<y<<endl;
+    int dp[n+m+1][n+m+1];
 
-    for(int i=0; i<n+1;i++){
-        for(int j=0; j<m+1; j++) dp[i][j] = 0;
+    for(i=0;i<=(n+m);i++) {
+        dp[i][0] = i*pen_gap;
+        dp[0][i] = i*pen_gap;
     }
 
-    for(int j=0; j<m+1; j++) dp[0][j] = j*pen_gap;
-
-    for(int i=0; i<n+1;i++) dp[i][0] = i*pen_gap;
-
-    for(int i=1; i<n+1;i++){
-        for(int j=1; j<m+1; j++) 
-        {
+    for(i=1;i<=m;i++) {
+        for(j=1;j<=n;j++) {
             if(x[i-1] == y[j-1]) {
                 dp[i][j] = dp[i-1][j-1];
+            } else {
+                dp[i][j] = findMin(dp[i-1][j-1] + findPenmiss(x[i-1],y[j-1]),dp[i-1][j] + pen_gap, dp[i][j-1] + pen_gap);
             }
-            else dp[i][j] = findMin(dp[i-1][j-1] + findPenmiss(x[i-1],y[j-1]),dp[i][j-1] + pen_gap, dp[i-1][j] + pen_gap);
-            //cout<<dp[i][j] << " ";
         }
-        //cout<<endl;
     }
 
-    string a="";
-    string b="";
+    int l = n+m;
 
-    int i=n; int j=m;
+    i=m;j=n;
 
-    while(i&&j) {
-        int score = dp[i][j];
-        int scoreDiag = dp[i-1][j-1];
-        int scoreUp = dp[i-1][j];
-        int scoreLeft = dp[i][j-1];
+    int xpos=l;
+    int ypos=l;
 
+    char xalign[l+1], yalign[l+1];
+
+    //Finidng the aligned sequence
+    while(!(i==0||j==0)){
         if(x[i-1] == y[j-1]) {
-            a = x[i-1] + a;
-            b = y[j-1] + b;
+            xalign[xpos--] = x[i-1];
+            yalign[ypos--] = y[j-1];
             i--;j--;
         }
-        else if(score == scoreDiag + findPenmiss(x[i-1],y[j-1])){
-            a = x[i-1] + a;
-            b = y[j-1] + b;
-            i--;j--;
+        else if (dp[i-1][j-1] + findPenmiss(x[i-1],y[j-1]) == dp[i][j]) {
+            xalign[xpos--] = x[i-1];
+            yalign[ypos--] = y[j-1];
+            i--;j--;            
         }
-
-        else if(score == scoreUp + pen_gap) {
-            a = x[i-1] + a;
-            b = '_' + b;
-            i--;
+        else if(dp[i-1][j] + pen_gap == dp[i][j]) {
+            xalign[xpos--] = x[i-1];
+            yalign[ypos--] = '_';
+            i--;            
         }
-
-        else if(score == scoreLeft + pen_gap){
-            a = '_' + a;
-            b = y[j-1] + b;
-            j--;
+        else if(dp[i][j-1] + pen_gap == dp[i][j]) {
+            xalign[xpos--] = '_';
+            yalign[ypos--] = y[j-1];
+            j--;            
         }
     }
-
-    while(i) {
-        a = x[i-1] + a;
-        b = '_' + b;
-        i--;
+    while (xpos>0) {
+        if(i>0) xalign[xpos--] = x[--i];
+        else xalign[xpos--] = '_';
     }
-    while(j) {
-        a = '_' + a;
-        b = y[j-1] + b;
-        j--;
+    while (ypos>0) {
+        if(j>0) yalign[ypos--] = y[--j];
+        else yalign[ypos--] = '_';
     }
 
+    int use=1;
+    i=1;
+    while(yalign[i] == '_' && xalign[i] == '_') {
+        use=i+1;
+        i++;
+    }
+
+    //printf("Minimum penalty = %d\n",dp[m][n]);
+    cost += dp[m][n]; //The minumum penalty of the sequence alignment
+    //printf("Aligned Sequence\n");
+
+    string outs1 ="";
+    string outs2 ="";
     string * result = new string[2];
 
-    result[0] = a;
-    result[1] = b;
+    //Storing the aligned sequence
+    for(i=use;i<=l;i++){
+        //printf("%c",xalign[i]);
+        outs1 = outs1+xalign[i];
+    }
+    //printf("\n");
+    for(i=use;i<=l;i++){
+        //printf("%c",yalign[i]);
+        outs2 = outs2+yalign[i];
+    }
 
-    //cout<<"cost is = "<<dp[n][m]<<endl;
-
-    cost+=dp[n][m];
-
-    cout<<result[0]<<","<<result[1]<<endl;;
+    result[0] = outs1;
+    result[1] = outs2;
 
     return result;
 }
@@ -277,12 +285,13 @@ int * forwards(string x, string y, int pen_gap){
 
     int dp[2][m+1];
 
-    for(int i=0; i<2; i++) 
+    for(int i=0; i<2; i++) {
         for(int j=0; j<m+1; j++) {
             dp[i][j] = 0;
         }
-    
-    for(int j=0; j<m+1; j++) dp[0][j] = pen_gap*j;
+    }
+
+    for(int j=1; j<m+1; j++) dp[0][j] = dp[0][j-1] + pen_gap;
 
     for(int i=1; i<n+1; i++) {
         dp[1][0] = dp[0][0] + pen_gap;
@@ -291,7 +300,7 @@ int * forwards(string x, string y, int pen_gap){
             dp[1][j] = findMin(dp[0][j-1] + findPenmiss(x[i-1],y[j-1]), dp[0][j] + pen_gap, dp[1][j-1] + pen_gap);
         }
 
-        for(int j=1; j<m+1; j++) dp[0][j] = dp[1][j];        
+        for(int j=0; j<m+1; j++) dp[0][j] = dp[1][j];        
     }
 
     int *result = new int[m+1];
@@ -344,7 +353,7 @@ string * efficient(string x, string y, int pen_gap){
     string b="";
     string * result = new string[2];
 
-    if(n<2 || m<2) {
+    if(n<=2 || m<=2) {
         result = sequenceAlignment(x,y,pen_gap);
         // a = result[0];
         // b = result[1];
@@ -359,8 +368,15 @@ string * efficient(string x, string y, int pen_gap){
 
         int * forward = forwards(x.substr(0,n/2),y,pen_gap);
 
+        string Xreverse = x.substr(n/2,n);
+        string Yreverse = y;
+
+        reverse(Xreverse.begin(),Xreverse.end());
+        reverse(Yreverse.begin(),Yreverse.end());
+
         //cout<<"forward found"<<endl;
         int * backward = backwards(x.substr(n/2,n),y,pen_gap);
+        //int  * backward = forwards(Xreverse,Yreverse,pen_gap);
 
         for(int j=0; j<m+1; j++) {
             partition[j] = forward[j] + backward[m-j];
@@ -381,14 +397,14 @@ string * efficient(string x, string y, int pen_gap){
         string *callleft = new string[2];
         string *callright = new string[2];
 
-        cout<<x.substr(0,n/2)<<","<<y.substr(0,min)<<endl;
-        cout<<x.substr(n/2,n)<<","<<y.substr(min,m)<<endl;
+        // cout<<x.substr(0,n/2)<<","<<y.substr(0,min)<<endl;
+        // cout<<x.substr(n/2,n)<<","<<y.substr(min,m)<<endl;
 
         callleft = efficient(x.substr(0,n/2),y.substr(0,min),pen_gap);
         callright = efficient(x.substr(n/2,n),y.substr(min,m+1),pen_gap);
 
-        cout<<"first string="<<callleft[0]<<","<<callright[0]<<endl;
-        cout<<"second string="<<callleft[1]<<","<<callright[1]<<endl;
+        // cout<<"first string="<<callleft[0]<<","<<callright[0]<<endl;
+        // cout<<"second string="<<callleft[1]<<","<<callright[1]<<endl;
 
         // a = callleft[0]+callright[0];
         // b = callleft[1]+callright[1];
@@ -412,7 +428,7 @@ int main(int argc, char *argv[]) {
     myio.stringGenerator(argc, argv);
     //myio.stringPrinter();
     int pen_gap = 30;
-    cout<<"start the alignment"<<endl;
+    //cout<<"start the alignment"<<endl;
     res2 = efficient(myio.s1,myio.s2,pen_gap);
     //res2 = efficient("AAAAAA","TATATATATATA",pen_gap);
     double totalmemory = getTotalMemory();
