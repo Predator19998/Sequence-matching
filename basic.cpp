@@ -74,7 +74,7 @@ class IOoperator{
 
     */
 
-    void fileWriter(int cost, string strAlign1, string strAlign2, float time, float memory){
+    void fileWriter(int cost, string strAlign1, string strAlign2, float time, long int memory){
         ofstream outfile;
         outfile.open(this->outFile);
         if(!outfile.is_open()){
@@ -280,12 +280,12 @@ int main(int argc, char *argv[]) {
     int pen_gap = 30;
 
     sequenceAlignment(myio.s1,myio.s2,pen_gap);
-    double totalmemory = getTotalMemory();
+    long int totalmemory = getTotalMemory();
     gettimeofday(&end, 0);
     long seconds = end.tv_sec - begin.tv_sec;
     long microseconds = end.tv_usec - begin.tv_usec;
     double totaltime = seconds*1000 + microseconds*1e-3;
     // printf("\nTotal time = %f\n", totaltime);
-    // printf("Total memory = %f\n", totalmemory);
+    //printf("Total memory = %ld\n", totalmemory);
     myio.fileWriter(cost,outs1,outs2,totaltime,totalmemory);
 }
