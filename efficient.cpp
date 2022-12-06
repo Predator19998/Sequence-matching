@@ -342,6 +342,7 @@ int * backwards(string x, string y, int pen_gap) {
         result[i] = dp[1][i];
         //cout<<result[i]<<" ";
     }
+
     return result;
 }
 
@@ -353,30 +354,46 @@ string * efficient(string x, string y, int pen_gap){
     string b="";
     string * result = new string[2];
 
-    if(n<=2 || m<=2) {
+    if (n==0) {
+        for(int i=0;i<m;i++) {
+            a = a + '_';
+            b = b + y[i];
+        }
+    }
+    else if(m==0){
+        for(int i=0;i<n;i++){
+            a = a + x[i];
+            b = b + '_';
+        }
+    }
+    else if(n==1 || m==1) {
         result = sequenceAlignment(x,y,pen_gap);
-        // a = result[0];
-        // b = result[1];
+        a = result[0];
+        b = result[1];
         //cout<<result[0]<<","<<result[1]<<endl;
-        return result;
+        //return result;
         //cout<<a<<endl<<b<<endl;
     }
     else {
         int partition[m+1];
 
+        int xmid = n/2;
+        string xleft = x.substr(0,xmid);
+        string xright = x.substr(xmid,n);
+
         //cout<<"find partition"<<endl;
 
-        int * forward = forwards(x.substr(0,n/2),y,pen_gap);
+        int * forward = forwards(xleft,y,pen_gap);
 
-        string Xreverse = x.substr(n/2,n);
+        string Xreverse = xright;
         string Yreverse = y;
 
         reverse(Xreverse.begin(),Xreverse.end());
         reverse(Yreverse.begin(),Yreverse.end());
 
         //cout<<"forward found"<<endl;
-        int * backward = backwards(x.substr(n/2,n),y,pen_gap);
-        //int  * backward = forwards(Xreverse,Yreverse,pen_gap);
+        //int * backward = backwards(x.substr(n/2,n),y,pen_gap);
+        int  * backward = forwards(Xreverse,Yreverse,pen_gap);
 
         for(int j=0; j<m+1; j++) {
             partition[j] = forward[j] + backward[m-j];
@@ -397,23 +414,27 @@ string * efficient(string x, string y, int pen_gap){
         string *callleft = new string[2];
         string *callright = new string[2];
 
+        string yleft = y.substr(0,min);
+        string yright = y.substr(min,m);
+
         // cout<<x.substr(0,n/2)<<","<<y.substr(0,min)<<endl;
         // cout<<x.substr(n/2,n)<<","<<y.substr(min,m)<<endl;
 
-        callleft = efficient(x.substr(0,n/2),y.substr(0,min),pen_gap);
-        callright = efficient(x.substr(n/2,n),y.substr(min,m+1),pen_gap);
+        callleft = efficient(xleft,yleft,pen_gap);
+        callright = efficient(xright,yright,pen_gap);
 
         // cout<<"first string="<<callleft[0]<<","<<callright[0]<<endl;
         // cout<<"second string="<<callleft[1]<<","<<callright[1]<<endl;
 
-        // a = callleft[0]+callright[0];
-        // b = callleft[1]+callright[1];
+        a = callleft[0]+callright[0];
+        b = callleft[1]+callright[1];
 
-        result[0] = callleft[0]+callright[0];
-        result[1] = callleft[1]+callright[1];
-
-        return result;
+        // result[0] = callleft[0]+callright[0];
+        // result[1] = callleft[1]+callright[1];
     }
+    result[0] = a;
+    result[1] = b;
+    return result;
 }
 
 int main(int argc, char *argv[]) {
@@ -437,8 +458,8 @@ int main(int argc, char *argv[]) {
     long microseconds = end.tv_usec - begin.tv_usec;
     double totaltime = seconds*1000 + microseconds*1e-3;
     // printf("\nTotal time = %f\n", totaltime);
-    // printf("Total memory = %f\n", totalmemory);
+    printf("Total memory = %f\n", totalmemory);
     //myio.fileWriter(cost,outs1,outs2,totaltime,totalmemory);
-    cout<<"cost="<<cost<<endl;
+    cout<<"cost="<<forwards(myio.s1,myio.s2,pen_gap)[myio.s2.length()]<<endl;
     cout<<res2[0]<<"\n"<<res2[1];
 }
