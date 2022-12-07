@@ -75,7 +75,7 @@ class IOoperator{
 
     */
 
-    void fileWriter(int cost, string strAlign1, string strAlign2, float time, float memory){
+    void fileWriter(int cost, string strAlign1, string strAlign2, float time, long int memory){
         ofstream outfile;
         outfile.open(this->outFile);
         if(!outfile.is_open()){
@@ -454,15 +454,15 @@ int main(int argc, char *argv[]) {
     //cout<<"start the alignment"<<endl;
     res2 = efficient(myio.s1,myio.s2,pen_gap);
     //res2 = efficient("AAAAAA","TATATATATATA",pen_gap);
-    double totalmemory = getTotalMemory();
+    long int totalmemory = getTotalMemory();
     gettimeofday(&end, 0);
     long seconds = end.tv_sec - begin.tv_sec;
     long microseconds = end.tv_usec - begin.tv_usec;
     double totaltime = seconds*1000 + microseconds*1e-3;
     // printf("\nTotal time = %f\n", totaltime);
     cost = forwards(myio.s1,myio.s2,pen_gap)[myio.s2.length()];
-    printf("Total memory = %f\n", totalmemory);
-    //myio.fileWriter(cost,outs1,outs2,totaltime,totalmemory);
+    printf("Total memory = %ld\n", totalmemory);
+    myio.fileWriter(cost,res2[0],res2[1],totaltime,totalmemory);
     cout<<"cost="<<cost<<endl;
     cout<<res2[0]<<"\n"<<res2[1];
 }
