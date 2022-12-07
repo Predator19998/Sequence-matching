@@ -137,7 +137,6 @@ class IOoperator{
 };
 
 extern int errno;
-int cost = 0;
 
 int miss_arr[4][4] = {0,110,48,94,
                     110,0,118,48,
@@ -189,7 +188,9 @@ string* sequenceAlignment(string x, string y,int pen_gap){
     int m = x.length();
     int n = y.length();
 
-    int dp[n+m+1][n+m+1];
+    int** dp; 
+    dp = new int*[n+m+1];
+    for(int i=0; i<n+m+1; i++) dp[i] = new int[n+m+1];
 
     for(i=0;i<=(n+m);i++) {
         dp[i][0] = i*pen_gap;
@@ -255,7 +256,7 @@ string* sequenceAlignment(string x, string y,int pen_gap){
     }
 
     //printf("Minimum penalty = %d\n",dp[m][n]);
-    cost += dp[m][n]; //The minumum penalty of the sequence alignment
+    //cost += dp[m][n]; //The minumum penalty of the sequence alignment
     //printf("Aligned Sequence\n");
 
     string outs1 ="";
@@ -443,6 +444,7 @@ int main(int argc, char *argv[]) {
     string s1,s2;
     string * res2 = new string[2];
     struct timeval begin, end;
+    int cost;
     gettimeofday(&begin, 0);
     //write your solution here
     //Please call getTotalMemory() only after calling your solution function. It calculates max memory used by the program.
@@ -458,8 +460,9 @@ int main(int argc, char *argv[]) {
     long microseconds = end.tv_usec - begin.tv_usec;
     double totaltime = seconds*1000 + microseconds*1e-3;
     // printf("\nTotal time = %f\n", totaltime);
+    cost = forwards(myio.s1,myio.s2,pen_gap)[myio.s2.length()];
     printf("Total memory = %f\n", totalmemory);
     //myio.fileWriter(cost,outs1,outs2,totaltime,totalmemory);
-    cout<<"cost="<<forwards(myio.s1,myio.s2,pen_gap)[myio.s2.length()]<<endl;
+    cout<<"cost="<<cost<<endl;
     cout<<res2[0]<<"\n"<<res2[1];
 }
