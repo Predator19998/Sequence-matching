@@ -1,4 +1,3 @@
 #!/bin/sh
-g++ efficient.cpp 
-./a.out "$1" "$2"
-
+g++ -std=c++11 efficient.cpp 
+./a.out $1 $2

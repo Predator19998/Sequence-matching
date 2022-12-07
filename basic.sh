@@ -1,3 +1,3 @@
 #!/bin/sh
-g++ basic.cpp
-./a.out "$1" "$2" 
+g++ -std=c++11 basic.cpp 
+./a.out $1 $2
