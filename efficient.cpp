@@ -81,16 +81,12 @@ class IOoperator{
         if(!outfile.is_open()){
             ofstream outfile("output.txt");
         }
-        // ofstream outfile(this->outFile);
-       
-    
             outfile<<cost<<endl;
             outfile<<strAlign1<<endl;
             outfile<<strAlign2<<endl;
             outfile<<time<<endl;
             outfile<<memory<<endl;
-            outfile.close();
-        
+            outfile.close();        
     }
 
     /*
@@ -255,10 +251,7 @@ string* sequenceAlignment(string x, string y,int pen_gap){
         i++;
     }
 
-    //printf("Minimum penalty = %d\n",dp[m][n]);
-    //cost += dp[m][n]; //The minumum penalty of the sequence alignment
-    //printf("Aligned Sequence\n");
-
+    
     string outs1 ="";
     string outs2 ="";
     string * result = new string[2];
@@ -305,47 +298,15 @@ int * forwards(string x, string y, int pen_gap){
     }
 
     int *result = new int[m+1];
-    //cout<<"forward=";
+
     for(int i=0; i<m+1 ; i++) {
         result[i] = dp[1][i];
-        //cout<<result[i]<<" ";
+       
     }
 
     return result;
 }
 
-int * backwards(string x, string y, int pen_gap) {
-    int n=x.length();
-    int m=y.length();
-
-    int dp[2][m+1];
-
-    for(int i=0; i<2; i++) 
-        for(int j=0; j<m+1; j++) {
-            dp[i][j] = 0;
-        }
-
-    for(int j=0; j<m+1; j++) dp[0][j] = pen_gap*j;
-
-    for(int i=1; i<n+1; i++) {
-        dp[1][0] = dp[0][0] + pen_gap;
-        
-        for(int j=1; j<m+1; j++){
-            dp[1][j] = findMin(dp[0][j-1] + findPenmiss(x[n-i],y[m-j]), dp[0][j] + pen_gap, dp[1][j-1] + pen_gap);
-        }
-
-        for(int j=0; j<m+1; j++) dp[0][j] = dp[1][j];        
-    }
-
-    int *result = new int[m+1];
-    //cout<<"backward=";
-    for(int i=0; i<m+1 ; i++) {
-        result[i] = dp[1][i];
-        //cout<<result[i]<<" ";
-    }
-
-    return result;
-}
 
 string * efficient(string x, string y, int pen_gap){
     int n=x.length();
@@ -371,9 +332,7 @@ string * efficient(string x, string y, int pen_gap){
         result = sequenceAlignment(x,y,pen_gap);
         a = result[0];
         b = result[1];
-        //cout<<result[0]<<","<<result[1]<<endl;
-        //return result;
-        //cout<<a<<endl<<b<<endl;
+
     }
     else {
         int partition[m+1];
@@ -381,8 +340,6 @@ string * efficient(string x, string y, int pen_gap){
         int xmid = n/2;
         string xleft = x.substr(0,xmid);
         string xright = x.substr(xmid,n);
-
-        //cout<<"find partition"<<endl;
 
         int * forward = forwards(xleft,y,pen_gap);
 
@@ -392,22 +349,18 @@ string * efficient(string x, string y, int pen_gap){
         reverse(Xreverse.begin(),Xreverse.end());
         reverse(Yreverse.begin(),Yreverse.end());
 
-        //cout<<"forward found"<<endl;
-        //int * backward = backwards(x.substr(n/2,n),y,pen_gap);
+        
         int  * backward = forwards(Xreverse,Yreverse,pen_gap);
 
         for(int j=0; j<m+1; j++) {
             partition[j] = forward[j] + backward[m-j];
-            //cout<<partition[j]<<" ";
+            
         }
-
-        //cout<<endl;
 
         int * partition_begin = &partition[0];
         int * partition_end = &partition[m];
 
         int min = distance(partition_begin,min_element(partition_begin,partition_end));
-        //cout<<"cut is="<<min<<endl;
 
         forward = NULL;
         backward = NULL;
@@ -418,20 +371,11 @@ string * efficient(string x, string y, int pen_gap){
         string yleft = y.substr(0,min);
         string yright = y.substr(min,m);
 
-        // cout<<x.substr(0,n/2)<<","<<y.substr(0,min)<<endl;
-        // cout<<x.substr(n/2,n)<<","<<y.substr(min,m)<<endl;
-
         callleft = efficient(xleft,yleft,pen_gap);
         callright = efficient(xright,yright,pen_gap);
 
-        // cout<<"first string="<<callleft[0]<<","<<callright[0]<<endl;
-        // cout<<"second string="<<callleft[1]<<","<<callright[1]<<endl;
-
         a = callleft[0]+callright[0];
         b = callleft[1]+callright[1];
-
-        // result[0] = callleft[0]+callright[0];
-        // result[1] = callleft[1]+callright[1];
     }
     result[0] = a;
     result[1] = b;
@@ -449,20 +393,14 @@ int main(int argc, char *argv[]) {
     //write your solution here
     //Please call getTotalMemory() only after calling your solution function. It calculates max memory used by the program.
     myio.stringGenerator(argc, argv);
-    //myio.stringPrinter();
     int pen_gap = 30;
-    //cout<<"start the alignment"<<endl;
     res2 = efficient(myio.s1,myio.s2,pen_gap);
-    //res2 = efficient("AAAAAA","TATATATATATA",pen_gap);
     long int totalmemory = getTotalMemory();
     gettimeofday(&end, 0);
     long seconds = end.tv_sec - begin.tv_sec;
     long microseconds = end.tv_usec - begin.tv_usec;
     double totaltime = seconds*1000 + microseconds*1e-3;
-    // printf("\nTotal time = %f\n", totaltime);
     cost = forwards(myio.s1,myio.s2,pen_gap)[myio.s2.length()];
-    printf("Total memory = %ld\n", totalmemory);
     myio.fileWriter(cost,res2[0],res2[1],totaltime,totalmemory);
-    cout<<"cost="<<cost<<endl;
-    cout<<res2[0]<<"\n"<<res2[1];
+    
 }

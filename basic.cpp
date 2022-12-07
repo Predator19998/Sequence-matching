@@ -88,6 +88,7 @@ class IOoperator{
             outfile<<strAlign2<<endl;
             outfile<<time<<endl;
             outfile<<memory<<endl;
+            
             outfile.close();
         
     }
@@ -184,12 +185,23 @@ int findPenmiss(char a, char b) {
 }
 
 void sequenceAlignment(string x, string y,int pen_gap){
+
     int i,j;
 
     int m = x.length();
     int n = y.length();
 
-    int dp[n+m+1][n+m+1];
+    int** dp;
+    dp = new int*[n+m+1];
+    for (int i = 0;i<n+m+1;i++)
+        dp[i] = new int[n+m+1];
+    for(auto i=0; i<n+m+1; i++){
+        for(auto j=0; j<m+n+1; j++){
+            dp[i][j] = -1;
+
+        }
+    }
+
 
     for(i=0;i<=(n+m);i++) {
         dp[i][0] = i*pen_gap;
@@ -253,16 +265,16 @@ void sequenceAlignment(string x, string y,int pen_gap){
         i++;
     }
 
-    //printf("Minimum penalty = %d\n",dp[m][n]);
+   
     cost = dp[m][n];
-    //printf("Aligned Sequence\n");
+    
     for(i=use;i<=l;i++){
-        //printf("%c",xalign[i]);
+        
         outs1 = outs1+xalign[i];
     }
-    //printf("\n");
+    
     for(i=use;i<=l;i++){
-        //printf("%c",yalign[i]);
+       
         outs2 = outs2+yalign[i];
     }
 }
@@ -276,16 +288,15 @@ int main(int argc, char *argv[]) {
     //write your solution here
     //Please call getTotalMemory() only after calling your solution function. It calculates max memory used by the program.
     myio.stringGenerator(argc, argv);
-
     int pen_gap = 30;
 
     sequenceAlignment(myio.s1,myio.s2,pen_gap);
+
     long int totalmemory = getTotalMemory();
     gettimeofday(&end, 0);
     long seconds = end.tv_sec - begin.tv_sec;
     long microseconds = end.tv_usec - begin.tv_usec;
     double totaltime = seconds*1000 + microseconds*1e-3;
-    // printf("\nTotal time = %f\n", totaltime);
-    //printf("Total memory = %ld\n", totalmemory);
+
     myio.fileWriter(cost,outs1,outs2,totaltime,totalmemory);
 }
